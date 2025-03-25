@@ -1,11 +1,27 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import styles from "./Advice.module.css"; // Import the CSS Module
 
 const Advice = () => {
     const [insights, setInsights] = useState(null);
-    const transArr = useSelector(store => store.transactionSlice);
+    const [listArr, setListArr] = useState([]);
+    // const listArr = useSelector(store => store.transactionSlice)
+    useEffect(() => {
+        const fetchList = async () => {
+            const resp = await fetch("http://172.16.26.235:3300/expenses");
+            console.log(resp)
+            const jsonresp = await resp.json();
+            console.log(jsonresp)
+            setListArr(jsonresp.reverse())
+        }
+        try {
+            fetchList();
+        } catch (error) {
+            console.log(error)
+        }
+    }, [])
+    console.log(listArr);
 
     // const fetchResponse = async () => {
     //     try {
@@ -46,7 +62,7 @@ const Advice = () => {
     // };
     const fetchResponse = async () => {
         try {
-            const formattedTransactions = JSON.stringify(transArr, null, 2);
+            const formattedTransactions = JSON.stringify(listArr, null, 2);
             const genAI = new GoogleGenerativeAI("AIzaSyDnBSxfDexdvh-BxNwx2rvc2Cm7nUsNXDM");
             const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
@@ -101,6 +117,11 @@ const Advice = () => {
                             <h3>Spending Trends 📈 </h3>
                             <p>{insights.spending_trends}</p>
                         </div>
+                        {/* Additional Insights */}
+                        <div className={styles.section}>
+                            <h3> Additional Insights 🧐</h3>
+                            <p>{insights.additional_insights}</p>
+                        </div>
 
                         {/* Category Breakdown */}
                         <div className={styles.section}>
@@ -127,11 +148,7 @@ const Advice = () => {
                         </div>
 
 
-                        {/* Additional Insights */}
-                        <div className={styles.section}>
-                            <h3> Additional Insights 🧐</h3>
-                            <p>{insights.additional_insights}</p>
-                        </div>
+
                     </div>
                     {/* Savings Suggestions */}
                     <div className={styles.sectionOut}>
